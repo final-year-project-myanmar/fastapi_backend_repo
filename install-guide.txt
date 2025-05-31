@@ -1,0 +1,10 @@
+pip3 install virtualenv
+virtualenv <your-env>
+source <your-env>/bin/activate or .\env\Scripts\Activate.ps1
+<your-env>/bin/pip install <package-name>
+
+pip install fastapi sqlalchemy psycopg2-binary 
+pip install -r requirements.txt
+
+git remote add upstream https://github.com/final-year-project-myanmar/fastapi_backend_repo.git
+
