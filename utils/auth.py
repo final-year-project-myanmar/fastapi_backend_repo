@@ -3,7 +3,8 @@ from datetime import datetime,timedelta
 from dotenv import load_dotenv
 from jose import jwt,JWTError
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import Depends,HTTPException
+from fastapi import Depends,HTTPException,Request
+from typing import Optional
 from schemas.schemas import TokenData
 import os
 
@@ -46,11 +47,34 @@ def get_current_user(token:str=Depends(oauth2_scheme))->TokenData:
     )
     try:
         payload= jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
+        print("Decoded JWT payload:", payload)
+        #added 
+        user_id:int=payload.get("user_id")
         email:str= payload.get('sub')
-        if email is None:
+        print(user_id,email)
+        if user_id is None or email is None:
             raise credentials_exception
-        return TokenData(username=email)
+        return TokenData(username=email,user_id=user_id)
     except JWTError:
         raise credentials_exception
 
 
+def get_current_user_optional(request:Request)->Optional[TokenData]:
+    auth_header=request.headers.get("Authorization")
+    if not auth_header:
+        return None
+    
+    scheme, _, token = auth_header.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        return None
+    
+    try:
+        payload= jwt.decode(token,SECRET_KEY,algorithms=[ALGORITHM])
+    
+        user_id:int=payload.get("user_id")
+        email:str= payload.get('sub')
+        if user_id is None or email is None:
+            raise credentials_exception
+        return TokenData(username=email,user_id=user_id)
+    except JWTError:
+        raise None

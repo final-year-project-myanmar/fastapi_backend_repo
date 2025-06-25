@@ -35,6 +35,8 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    #added
+    user_id:Optional[int]=None
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
@@ -45,4 +47,15 @@ class ResetPasswordConfirm(BaseModel):
 
 class GoogleToken(BaseModel):
     id_token:str
+
+class PredictRequest(BaseModel):
+    text:str
+
+class PredictResponse(BaseModel):
+    text:str
+    sentiment:str
+    confidence:float | None
+
+
+
     
