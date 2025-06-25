@@ -3,11 +3,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.db import engine
 import models
-from routes import retrain, auth, predict
+from routes import retrain, auth, predict,userInput
 
 app = FastAPI()
 
-# CORS setup
+
+models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
 origins = [
     "http://localhost:5173",
     "https://127.0.0.1:5173",
@@ -28,3 +31,14 @@ models.Base.metadata.create_all(bind=engine)
 app.include_router(auth.router)
 app.include_router(predict.router)
 app.include_router(retrain.router)
+app.include_router(userInput.router)
+
+
+    
+    
+    
+        
+        
+   
+
+

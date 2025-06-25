@@ -1,13 +1,6 @@
 fastapi[standard]
 python-dotenv
 requests
-wandb
-papermill
-ipykernel
-pandas
-scikit-learn
-torch
-joblib
 uvicorn
 sqlalchemy
 psycopg2-binary 
@@ -15,4 +8,4 @@ passlib[bcrypt]
 python-jose
 authlib
 alembic
-requests
+pydantic

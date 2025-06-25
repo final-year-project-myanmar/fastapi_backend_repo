@@ -15,7 +15,10 @@ load_dotenv()
 # get variables from environment
 SECRET_KEY=os.getenv("SECRET_KEY")
 ALGORITHM=os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRED_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRED_MINUTES")
+try:
+    ACCESS_TOKEN_EXPIRED_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRED_MINUTES", "15"))
+except ValueError:
+    raise ValueError("ACCESS_TOKEN_EXPIRED_MINUTES must be an integer.")
 
 # password hashing context
 pwd_context= CryptContext(schemes=['bcrypt'],deprecated='auto')
