@@ -10,7 +10,6 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
 origins = [
     "http://localhost:5173",
     "https://127.0.0.1:5173",
@@ -34,8 +33,6 @@ app.include_router(retrain.router)
 app.include_router(userInput.router)
 
 
-    
-    
     
         
         

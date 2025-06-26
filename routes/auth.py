@@ -107,11 +107,14 @@ def google_login(token_data:GoogleToken,db:Session=Depends(get_db)):
 
     user=db.query(User).filter(User.email==google_resp["email"]).first()
     if not user:
-        user= User(username=google_resp.get("name","googleuser"),email=google_resp["email"])
+        user= User(username=google_resp.get("name","googleuser"),email=google_resp["email"],password="dummy")
         db.add(user)
         db.commit()
         db.refresh(user)
-    access_token=generate_token({"sub":user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token=generate_token({"sub":user.email,"user_id":user.id})
+    return {
+        "access_token": access_token,
+        "user": {"username": user.username, "email": user.email},
+        "token_type": "bearer"}
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
