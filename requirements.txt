@@ -1,0 +1,13 @@
+fastapi[standard]
+python-dotenv
+requests
+uvicorn
+sqlalchemy
+psycopg2-binary 
+passlib[bcrypt]
+python-jose
+authlib
+alembic
+pydantic
+asyncpg
+greenlet
