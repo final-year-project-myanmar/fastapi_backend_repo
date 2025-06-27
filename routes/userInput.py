@@ -11,7 +11,7 @@ from schemas.schemas import UserInputRequest, SentimentResult, Probabilities, Ov
 from fastapi import APIRouter, HTTPException, Depends
 from core.dataLayer.sentiment_results import insert_sentiment_results, get_all_sentiment_results
 from core.db import db_dependency
-from utils.auth import get_current_user
+from utils.auth import get_current_user,get_current_user_optional
 
 from utils.sentiment_results import map_db_sentiment_to_pydantic
 
@@ -56,17 +56,18 @@ async def process_text_for_sentiment(
 
 
 @router.post("/userinput", status_code=status.HTTP_201_CREATED, response_model=OverAllSentimentResult)
-async def submit_user_input(input_data: UserInputRequest, db: db_dependency, current_user: Optional[TokenData] = Depends(get_current_user)):
+async def submit_user_input(input_data: UserInputRequest, db: db_dependency, current_user: Optional[TokenData] = Depends(get_current_user_optional)):
     """
     Endpoint to handle user input.
     """
     print(f"Current User: {current_user}")
+    user_id = current_user.user_id if current_user else None
     all_results: List[SentimentResult] = []
     if input_data.text:
 
         # perform the sentiment analysis process with input_data.text
         sentiment_result = await process_text_for_sentiment(
-            input_data.text, db, current_user.id
+            input_data.text, db, user_id
         )
         all_results.append(sentiment_result)
 
@@ -82,7 +83,7 @@ async def submit_user_input(input_data: UserInputRequest, db: db_dependency, cur
                     text_to_analyze = row_data[0]
 
                     # perform the sentiment analysis process with input_data.uploadedFiles's rowdata
-                    analysis_result = await process_text_for_sentiment(text_to_analyze, db, current_user.id)
+                    analysis_result = await process_text_for_sentiment(text_to_analyze, db, user_id)
                     all_results.append(analysis_result)
 
     elif not input_data.text and not input_data.uploadedFiles:
@@ -101,12 +102,11 @@ async def submit_user_input(input_data: UserInputRequest, db: db_dependency, cur
 async def get_user_iput_sentiment_data(db: db_dependency, current_user: Optional[TokenData] = Depends(get_current_user)):
     """ End point to get all sentiment data from user input """
     
-    all_results: List[DBSentimentResult] = await get_all_sentiment_results(db, current_user.id)
+    all_results = await get_all_sentiment_results(db, current_user.user_id)
 
-    for result in all_results:
-        pydantic_formatted_results: List[DBSentimentResult] = [
-            map_db_sentiment_to_pydantic(record) for record in all_results
-        ]
+    pydantic_formatted_results = [
+        map_db_sentiment_to_pydantic(record) for record in all_results
+    ]
 
     return {
         "message": "Sentiment data retrieved successfully",

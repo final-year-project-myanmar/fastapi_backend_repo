@@ -15,6 +15,8 @@ async def insert_sentiment_results(
     """
     sentiment_str = sentiment_data.predicted_label.lower()
     sentiment_enum = sentiment_types(sentiment_str)
+    if user_id is None:
+        return
     new_result = sentiment_resultDB(
         user_id=user_id,
         input_text=sentiment_data.text,

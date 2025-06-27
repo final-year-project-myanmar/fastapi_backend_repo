@@ -86,4 +86,4 @@ def get_current_user_optional(request:Request)->Optional[TokenData]:
             raise credentials_exception
         return TokenData(username=email,user_id=user_id)
     except JWTError:
-        raise None
+        return None

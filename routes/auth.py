@@ -10,6 +10,7 @@ import requests
 from core.db import db_dependency
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import httpx
 
 router=APIRouter()
 
@@ -105,7 +106,9 @@ async def reset_password(db :db_dependency,data: ResetPasswordConfirm):
 async def google_login(db: db_dependency,token_data: GoogleToken):
     id_token= token_data.id_token
     try:
-        google_resp = await requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}").json()
+        async with httpx.AsyncClient() as client:
+                response=await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}")
+        google_resp = response.json()
         if "email" not in google_resp:
             raise HTTPException(status_code=400, detail="Invalid Google token")
     except Exception as e:
