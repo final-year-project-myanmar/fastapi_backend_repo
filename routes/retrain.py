@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException
 import os
+
 import requests
+
+from fastapi import APIRouter, HTTPException
 
 router= APIRouter()
 
@@ -30,7 +32,8 @@ async def retrain_model():
         response = requests.post(
             url,
             headers=headers,
-            json={"ref": "main"}
+            json={"ref": "main"},
+            timeout=10  # Set timeout to 10 seconds
         )
         response.raise_for_status()
         

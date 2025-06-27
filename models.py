@@ -1,5 +1,9 @@
-from sqlalchemy import Column,ForeignKey,Integer,Float,String,DateTime,Text,func
+
+import enum
+from sqlalchemy import Column,ForeignKey,Integer,String,DateTime,Text,func,Float
 from core.db import Base
+from sqlalchemy import Enum as SQLEnum
+
 
 class Testing(Base):
     __tablename__='testing'
@@ -14,18 +18,26 @@ class User(Base):
     username= Column(String(52),unique=True,nullable=False)
     email=Column(String(255),unique=True,nullable=False)
     password=Column(Text,nullable=False)
-    created_at=Column(DateTime(timezone=True),server_default=func.now())
+    created_at=Column(DateTime(timezone=True), server_default=func.now())
     updated_at=Column(DateTime(timezone=True),onupdate=func.now())
     reset_token=Column(String,nullable=True)
     reset_token_expiration=Column(DateTime,nullable=True)
 
-class SentimentRequests(Base):
-    __tablename__="sentimentRequests"
 
-    id=Column(Integer,primary_key=True,index=True)
-    user_id=Column(Integer,ForeignKey("users.id"),nullable=False)
-    input_text=Column(Text,nullable=False)
-    sentiment = Column(Text, nullable=False)
+class sentiment_types(enum.Enum):
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    NEUTRAL = "neutral"
+
+class sentiment_result(Base):
+    __tablename__ = 'sentiment_results'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    input_text = Column(Text, nullable=False)
+    sentiment = Column(SQLEnum(sentiment_types, name="sentiment"), default=sentiment_types.NEUTRAL)
     confidence_score = Column(Float, nullable=False)
-    created_at=Column(DateTime(timezone=True),server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    
 

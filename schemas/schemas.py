@@ -1,5 +1,5 @@
-from pydantic import BaseModel,EmailStr
-from typing import Optional
+from pydantic import BaseModel,EmailStr, Field
+from typing import Optional,List
 
 class TestingBase(BaseModel):
    title:str
@@ -35,8 +35,9 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
-    #added
     user_id:Optional[int]=None
+
+
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
@@ -48,6 +49,7 @@ class ResetPasswordConfirm(BaseModel):
 class GoogleToken(BaseModel):
     id_token:str
 
+
 class PredictRequest(BaseModel):
     text:str
 
@@ -57,5 +59,37 @@ class PredictResponse(BaseModel):
     confidence:float | None
 
 
+class Probabilities(BaseModel):
+    class_0: float
+    class_1: float
+    class_minus_1: float = Field(default=0.0, alias='class_-1')
+
+
+class SentimentResult(BaseModel):
+    text: str
+    predicted_label: str
+    predicted_class: int
+    probabilities: Probabilities
+    confidence: float
+
+
+class OverAllSentimentResult(BaseModel):
+    message: str
+    results: List[SentimentResult]
+
+class DBSentimentResult(BaseModel):
+    text:str
+    sentiment: str
+    confidence : float
+    user_id : Optional[int]
+    
+
+class DBSentimentResultReponse(BaseModel):
+    message: str
+    results: List[DBSentimentResult]
 
     
+class UserInputRequest(BaseModel):
+    text: str = ""
+    uploadedFiles: Optional[List[str]] = Field(default_factory=list)
+

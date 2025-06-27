@@ -1,67 +1,114 @@
 import csv
+import io
 import os
-import io  
 from typing import List, Optional
 
-from pydantic import BaseModel,Field
-from fastapi import APIRouter, HTTPException
+
+from LLMmodels.deploy_model_20250615_133439 import predict_sentiment
+from pydantic import BaseModel, Field
 from starlette import status
+from schemas.schemas import UserInputRequest, SentimentResult, Probabilities, OverAllSentimentResult, TokenData, DBSentimentResult, DBSentimentResultReponse
+from fastapi import APIRouter, HTTPException, Depends
+from core.dataLayer.sentiment_results import insert_sentiment_results, get_all_sentiment_results
+from core.db import db_dependency
+from utils.auth import get_current_user
+
+from utils.sentiment_results import map_db_sentiment_to_pydantic
+
 router = APIRouter()
-
-
-class UserInputRequest(BaseModel):
-    text: str = ""
-    uploadedFiles: Optional[List[str]] = Field(default_factory=list)
-
-
-class SentimentResult(BaseModel):
-    id: str
-    text: str
-    sentiment: str
-    confidence: float
 
 
 async def perform_sentiment_analysis(text: str):
     # Placeholder for sentiment analysis logic
-    # This function should implement the actual sentiment analysis process
-    pass
+    result = predict_sentiment(text)
+    return result
+
+# helper function for processing sentiment analysis and save to db object
 
 
-@router.post("/userinput", status_code=status.HTTP_201_CREATED)
-async def submit_user_input(input_data: UserInputRequest):
+async def process_text_for_sentiment(
+    text: str,
+    db: db_dependency,
+    user_id: int
+) -> SentimentResult:
+
+    analysis_result = await perform_sentiment_analysis(text)
+    confidence = analysis_result['probabilities'].get(
+        f"class_{analysis_result['predicted_class']}", 0.0)
+
+ # Create SentimentResult object
+    sentiment_result = SentimentResult(
+        text=text,
+        predicted_label=analysis_result['predicted_label'],
+        predicted_class=analysis_result['predicted_class'],
+        probabilities=Probabilities(
+            class_0=analysis_result['probabilities'].get(
+                'class_0', 0.0),
+            class_1=analysis_result['probabilities'].get(
+                'class_1', 0.0),
+            class_minus_1=analysis_result['probabilities'].get(
+                'class_-1', 0.0)
+        ),
+        confidence=confidence
+    )
+    await insert_sentiment_results(db, sentiment_result, user_id)
+    return sentiment_result
+
+
+@router.post("/userinput", status_code=status.HTTP_201_CREATED, response_model=OverAllSentimentResult)
+async def submit_user_input(input_data: UserInputRequest, db: db_dependency, current_user: Optional[TokenData] = Depends(get_current_user)):
     """
     Endpoint to handle user input.
     """
-    print(f"Received input: {input_data}")
+    print(f"Current User: {current_user}")
+    all_results: List[SentimentResult] = []
     if input_data.text:
-        print(f"Received text: {input_data.text}")
 
         # perform the sentiment analysis process with input_data.text
+        sentiment_result = await process_text_for_sentiment(
+            input_data.text, db, current_user.id
+        )
+        all_results.append(sentiment_result)
 
-        return {"message": "Text received", "text": input_data.text}
+        # multiple files case
     elif input_data.uploadedFiles:
-        print(f"Received files: {input_data.uploadedFiles}")
-
         for file in input_data.uploadedFiles:
-            print(f"Processing file: {file}")
             csv_file = io.StringIO(file)
             reader = csv.reader(csv_file)
-            print(f"Reader: {reader}")
 
+            # read the rowdata from the files
             for row_data in reader:
-                if row_data:  
+                if row_data:
                     text_to_analyze = row_data[0]
-                    print(f"Analyzing CSV line: '{text_to_analyze[:100]}...'")
-                   
-                else:
-                    print("Skipping empty row in CSV.")
 
-        # read the rowdata from the files
-        # perform the sentiment analysis process with input_data.uploadedFiles's rowdata
+                    # perform the sentiment analysis process with input_data.uploadedFiles's rowdata
+                    analysis_result = await process_text_for_sentiment(text_to_analyze, db, current_user.id)
+                    all_results.append(analysis_result)
 
-        return {"message": "Files received", "files": input_data.uploadedFiles}
     elif not input_data.text and not input_data.uploadedFiles:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid input: Please provide either text or files."
         )
+
+    return {
+        "message": "Files processed",
+        "results": all_results
+    }
+
+
+@router.get("/userinput", status_code=status.HTTP_200_OK, response_model=DBSentimentResultReponse)
+async def get_user_iput_sentiment_data(db: db_dependency, current_user: Optional[TokenData] = Depends(get_current_user)):
+    """ End point to get all sentiment data from user input """
+    
+    all_results: List[DBSentimentResult] = await get_all_sentiment_results(db, current_user.id)
+
+    for result in all_results:
+        pydantic_formatted_results: List[DBSentimentResult] = [
+            map_db_sentiment_to_pydantic(record) for record in all_results
+        ]
+
+    return {
+        "message": "Sentiment data retrieved successfully",
+        "results": pydantic_formatted_results
+    }

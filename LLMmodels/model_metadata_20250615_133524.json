@@ -1,0 +1,19 @@
+{
+  "model_name": "Logistic Regression",
+  "vectorizer_name": "BOW",
+  "test_accuracy": 0.5416666666666666,
+  "test_f1_macro": 0.4426504330041863,
+  "train_accuracy": 0.7703209670696123,
+  "train_f1_macro": 0.7212439537017662,
+  "overfitting_gap_acc": 0.22865430040294565,
+  "overfitting_gap_f1": 0.2785935206975799,
+  "training_samples": 2399,
+  "test_samples": 600,
+  "classes": [
+    -1,
+    0,
+    1
+  ],
+  "timestamp": "20250615_133524",
+  "model_file": "best_model_logistic_regression_bow_20250615_133524.pkl"
+}
