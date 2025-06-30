@@ -1,5 +1,6 @@
 from pydantic import BaseModel,EmailStr, Field
 from typing import Optional,List
+from datetime import datetime
 
 class TestingBase(BaseModel):
    title:str
@@ -35,7 +36,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
-    user_id:Optional[int]=None
+    user_id: Optional[int]=None
 
 
 
@@ -52,10 +53,20 @@ class GoogleToken(BaseModel):
 
 class Api_Key(BaseModel):
     key_name : str
+    account_status: str
     public_key: str
     hashkey :str
 
 
+class Api_KeyDBResponse(BaseModel):
+    keyname : str
+    public_key : str
+    account_status: str
+    created_at : datetime
+    lastused_at : datetime
+
+  
+   
 class PredictRequest(BaseModel):
     text:str
 

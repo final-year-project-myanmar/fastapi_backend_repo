@@ -40,7 +40,8 @@ class APIKeys(Base):
     public_key = Column(Text,unique=True)
     hashkey= Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    lastused_at = Column(DateTime(timezone=True), onupdate=func.now())
+    lastused_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
 
 class sentiment_types(enum.Enum):
     POSITIVE = "positive"

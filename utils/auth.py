@@ -16,7 +16,7 @@ load_dotenv()
 SECRET_KEY=os.getenv("SECRET_KEY")
 ALGORITHM=os.getenv("ALGORITHM")
 try:
-    ACCESS_TOKEN_EXPIRED_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRED_MINUTES", "15"))
+    ACCESS_TOKEN_EXPIRED_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRED_MINUTES", "43200"))
 except ValueError:
     raise ValueError("ACCESS_TOKEN_EXPIRED_MINUTES must be an integer.")
 
