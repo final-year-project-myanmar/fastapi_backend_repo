@@ -13,37 +13,37 @@ router = APIRouter()
 
 
 @router.post("/api_key_creation", status_code=status.HTTP_201_CREATED)
-async def create_api_key(request: Request, db: db_dependency, current_user: Optional[TokenData] = Depends(get_current_user)):
-    data = await request.json()
-
+async def create_api_key(request: api_key_achema, db: db_dependency, current_user: Optional[TokenData] = Depends(get_current_user)):
+    
+    key_name = request.key_name.strip()
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized user to generate API key"
         )
-    if not data.get("key_name"):
+    if not key_name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="API key name is required."
         )
 
     # validate if key_name has already existed for current user
-    existing_key = await check_if_key_exists(db, current_user.user_id, data.get("key_name").strip())
+    existing_key = await check_if_key_exists(db, current_user.user_id, key_name)
 
     if existing_key:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"API key with  name '{data.get("key_name")}' already exists for the user."
+            detail=f"API key with  name '{key_name}' already exists for the user."
         )
     # generate public_key and hashkey
-    hash_key = hash_password(data.get("key_name"))
+    hash_key = hash_password(key_name)
     public_key = f"pk-{hash_key[:10]}{secrets.token_urlsafe(32)}"
 
-    data["account_status"] = "active"
-    data["public_key"] = public_key
-    data["hashkey"] = hash_key
-
-    api_key_obj = api_key_achema(**data)
+    api_key_obj = request.model_copy(update={
+        "account_status": "active",
+        "public_key": f"pk-{hash_key[:10]}{secrets.token_urlsafe(32)}",
+        "hashkey": hash_key
+    })
 
     # insert into DB table
     new_key = await insert_new_api_key(api_key_obj, db, current_user.user_id)
@@ -53,7 +53,10 @@ async def create_api_key(request: Request, db: db_dependency, current_user: Opti
     return {
         "message": "API Key Created!",
         "data": {
-            "key_name": data.get("key_name")
+            "key_name":new_key.keyname,
+            "public_key": new_key.public_key,
+            "created_at": new_key.created_at,
+            "lastused_at": new_key.lastused_at,
         }
     }
 

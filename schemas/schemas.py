@@ -53,9 +53,6 @@ class GoogleToken(BaseModel):
 
 class Api_Key(BaseModel):
     key_name : str
-    account_status: str
-    public_key: str
-    hashkey :str
 
 
 class Api_KeyDBResponse(BaseModel):

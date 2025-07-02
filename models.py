@@ -1,8 +1,9 @@
 
 import enum
-from sqlalchemy import Column,ForeignKey,Integer,String,DateTime,Text,func,Float
+from sqlalchemy import Column,ForeignKey,Integer,String,DateTime,Text,Float,func
 from core.db import Base
 from sqlalchemy import Enum as SQLEnum
+
 
 
 class Testing(Base):
