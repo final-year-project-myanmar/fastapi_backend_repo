@@ -67,7 +67,7 @@ async def submit_user_input(input_data: UserInputRequest, db: db_dependency, cur
 
         # perform the sentiment analysis process with input_data.text
         sentiment_result = await process_text_for_sentiment(
-            input_data.text, db, current_user.user_id
+        input_data.text, db, user_id
         )
         all_results.append(sentiment_result)
 

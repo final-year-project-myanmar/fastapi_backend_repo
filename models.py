@@ -1,8 +1,10 @@
 
 import enum
-from sqlalchemy import Column,ForeignKey,Integer,String,DateTime,Text,func,Float
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, Float, func
 from core.db import Base
 from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import UniqueConstraint
+
 
 
 class Testing(Base):
@@ -32,16 +34,19 @@ class account_status_types(enum.Enum):
 
 class APIKeys(Base):
     __tablename__ = 'api_keys'
+    
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    keyname = Column(Text, unique=True, nullable=False)
+    keyname = Column(Text, nullable=False)
     account_status = Column(SQLEnum(account_status_types, name="account_status"))
     public_key = Column(Text,unique=True)
     hashkey= Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     lastused_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
+    __table_args__ = (
+        UniqueConstraint('user_id','keyname',name='unq_usr_id_keyname'),
+        )
 
 class sentiment_types(enum.Enum):
     POSITIVE = "positive"
