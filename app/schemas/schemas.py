@@ -71,6 +71,13 @@ class PredictResponse(BaseModel):
     text:str
     sentiment:str
     confidence: Optional[float]
+    
+class PredictMultipleRequest(BaseModel):
+    text: List[str]
+    
+class PredictMultipleResponse(BaseModel):
+     results: List[PredictResponse]
+    
 
 
 class Probabilities(BaseModel):

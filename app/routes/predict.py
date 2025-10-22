@@ -13,6 +13,7 @@ from app.repository.dataLayer.api_keys_layer import check_if_token_exists
 
 router= APIRouter()
 Api_Key_header = APIKeyHeader(name="X-Api-Key", auto_error=False)
+label_map = {0: "Neutral", 1: "Positive", -1: "Negative"}
 
 @router.post("/predict",response_model=PredictResponse)
 async def predict_sentiment(
@@ -80,3 +81,41 @@ async def get_sentiments(
         )
         for item in rows
     ]
+
+@router.post("/predictFile", response_model=PredictMultipleResponse)
+async def predict_multiple_file(req: PredictMultipleRequest,
+                                db: db_dependency,
+                                api_key: str = Depends(Api_Key_header),
+                                model=Depends(get_model),
+                                current_user: Optional[TokenData] = Depends(get_current_user_optional)):
+    
+    if model is None:
+        raise HTTPException(status_code=500, detail="Sentiment model not loaded")
+    check_if_token_exists_result = await check_if_token_exists(db,api_key)
+    if not check_if_token_exists_result:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+   
+   #Predict
+    if req.text is None:
+        raise HTTPException(status_code=500, detail = "There is no text input to analyze")
+    
+    results = []
+    multiple_text = req.text
+    for text in multiple_text:
+        prediction = model.predict([text])[0]
+        proba = model.predict_proba([text])[0] if hasattr(
+        model, 'predict_proba') else None
+        label = label_map.get(prediction, "Unknown")
+        confidence = max(proba) if proba is not None else None
+        
+        results.append({
+            "text": text,
+            "sentiment": label,
+            "confidence": confidence
+          })
+           
+        
+    
+    # Return prediction
+    return PredictMultipleResponse( results= results )
+
