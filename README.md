@@ -34,3 +34,7 @@ TESTING=1 PYTHONPATH=. pytest -s
 
 ```
 
+<img width="1594" height="1460" alt="image" src="https://github.com/user-attachments/assets/2b61f7d6-0123-491a-9c99-ff1b2b6f9570" />
+
+<img width="1594" height="1100" alt="image" src="https://github.com/user-attachments/assets/ead55c02-57bb-46ea-bfc6-7b550864427f" />
+
