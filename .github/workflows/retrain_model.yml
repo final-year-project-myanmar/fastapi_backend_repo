@@ -1,0 +1,72 @@
+name: Retrain Model on Feedback Data Using WandB
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset_path:
+        description: 'Path to the dataset for retraining'
+        required: true
+
+jobs:
+  training_model:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # Cache pip dependencies
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/ml-requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ml-requirements.txt
+
+
+      # Create notebooks directory
+      - name: Create notebooks directory
+        run: |
+          mkdir -p notebooks
+
+      # Echo the input dataset path
+      - name: Echo Input Path
+        run: |
+          echo "Dataset Path: ${{ inputs.dataset_path }}"
+
+      # Retrain the model using Papermill
+      - name: Retrain model
+        run: |
+          gdown https://drive.google.com/uc?id=1051GaQKcoSi4EmYVmphlF_e4shGcklJq -O notebooks/MyanSen_Model_Training.ipynb
+          papermill "notebooks/MyanSen_Model_Training.ipynb" \
+            "notebooks/retrained_sentiment_model.ipynb" \
+            -p dataset_path "${{ inputs.dataset_path }}" \
+            --log-output \
+            --kernel python3
+          ls -l notebooks/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          WANDB_API_KEY: ${{ secrets.WANDB_LOGIN_KEY }}
+
+      # Upload the training logs
+      - name: Upload Training Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-output
+          path: notebooks/output_files/

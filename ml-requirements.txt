@@ -1,0 +1,14 @@
+wandb
+gdown
+papermill
+boto3
+ipykernel
+pandas
+scikit-learn==1.5.1
+torch
+joblib
+numpy 
+tensorflow-cpu
+keras
+icu-tokenizer
+myanmartools

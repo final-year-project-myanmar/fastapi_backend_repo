@@ -1,2 +1,9 @@
 __pycache__
 .DS_Store
+/fastapibackend/*
+.env
+.env.example
+install-guides.txt
+/artifacts/
+/artifacts/*
+/wandb/
